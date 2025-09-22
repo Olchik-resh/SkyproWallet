@@ -1,0 +1,3 @@
+<template>
+    <BaseHa
+</template>

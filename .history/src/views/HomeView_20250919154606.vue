@@ -1,0 +1,3 @@
+<template>
+  <Bas
+</template>

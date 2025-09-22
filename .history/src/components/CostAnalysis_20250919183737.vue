@@ -1,0 +1,22 @@
+<template>
+  <BaseHeader />
+  <div class="cost__conteiner">
+    <h1 class="text-ttl">Анализ расходов</h1>
+  </div>
+</template>
+
+<script setup lang="ts">
+import BaseHeader from './BaseHeader.vue'
+</script>
+
+<script setup>
+.conteiner {
+  margin-left: 120px;
+  padding-top: 36px;
+}
+.text-ttl {
+  color: rgba(0, 0, 0, 1);
+  font-size: 32px;
+  font-weight: 700;
+}
+</script>
