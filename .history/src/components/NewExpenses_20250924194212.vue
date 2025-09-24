@@ -172,7 +172,6 @@ function addExpense() {
   justify-content: flex-start;
   gap: 6px;
   margin-top: 16px;
-  margin-bottom: 24px;
 }
 
 .category-btn {

@@ -34,9 +34,9 @@ import CalendarComponent from './CalendarComponent.vue'
   font-weight: 700;
 }
 .cost-tbl {
-  margin-top: 32px;
   display: flex;
   gap: 34px;
+  
 }
 .cost-tbl__period {
   width: 379px;

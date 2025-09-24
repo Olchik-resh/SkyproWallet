@@ -5,7 +5,7 @@
       <div class="cost-tbl__period">
         <table>
           <h2 class="tbl__ttl">Период</h2>
-          <CalendarComponent />
+          <
         </table>
       </div>
       <div class="cost-tbl__chart">
@@ -17,9 +17,7 @@
   </div>
 </template>
 
-<script setup>
-import CalendarComponent from './CalendarComponent.vue'
-</script>
+<script setup></script>
 
 <style lang="css">
 .cost__conteiner {

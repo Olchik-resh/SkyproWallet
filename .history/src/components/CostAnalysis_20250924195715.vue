@@ -33,11 +33,11 @@ import CalendarComponent from './CalendarComponent.vue'
   font-size: 32px;
   font-weight: 700;
 }
-.cost-tbl {
+/* .cost-tbl {
   margin-top: 32px;
   display: flex;
   gap: 34px;
-}
+} */
 .cost-tbl__period {
   width: 379px;
   height: 540px;

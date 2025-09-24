@@ -164,15 +164,13 @@ function addExpense() {
 }
 
 .categories-grid {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-content: stretch;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 6px;
-  margin-top: 16px;
-  margin-bottom: 24px;
+    display: flex
+;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: stretch;
+    align-items: flex-start;
+    justify-content: flex-start;
 }
 
 .category-btn {
