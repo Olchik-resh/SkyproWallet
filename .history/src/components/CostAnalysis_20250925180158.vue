@@ -24,8 +24,8 @@ import CalendarComponent from './CalendarComponent.vue'
 </script>
 
 <style lang="css">
-table {
-  border-spacing: 0px;
+table{
+  
 }
 .cost__conteiner {
   margin-left: 120px;

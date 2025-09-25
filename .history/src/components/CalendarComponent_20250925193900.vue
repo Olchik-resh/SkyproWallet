@@ -18,7 +18,7 @@
           {{ month.format('MMMM YYYY').replace(/^./, (m) => m.toUpperCase()) }}
         </div>
         <table class="calendar-table">
-          <tbody class="calendar-table__block">
+          <tbody>
             <tr v-for="(week, wIdx) in getCalendarMatrix(month)" :key="wIdx">
               <td
                 v-for="(cell, dIdx) in week"
@@ -41,37 +41,38 @@ import 'dayjs/locale/ru'
 dayjs.locale('ru')
 
 const monthsCount = 13
+const currentMonthIdx = 6 // где находится текущий месяц
+
 const monthsArray = Array.from({ length: monthsCount }, (_, idx) =>
-  dayjs().startOf('month').add(idx, 'month'),
+  dayjs()
+    .startOf('month')
+    .add(idx - currentMonthIdx, 'month'),
 )
 
+// Функция генерации матрицы месяца
 function getCalendarMatrix(month) {
   const matrix = []
   const firstDay = month.startOf('month')
-  const daysInMonth = month.daysInMonth()
-  const weekDayOfFirst = (firstDay.day() + 6) % 7 // 0 - ПН, 6 - ВС
-
-  let dayCounter = 1
+  const lastDay = month.endOf('month')
+  const prevDays = (firstDay.day() + 6) % 7
+  let start = firstDay.subtract(prevDays, 'day')
   for (let w = 0; w < 6; w++) {
     const week = []
     for (let d = 0; d < 7; d++) {
-      if (w === 0 && d < weekDayOfFirst) {
-        week.push({ day: '', isCurrentMonth: false })
-      } else if (dayCounter > daysInMonth) {
-        week.push({ day: '', isCurrentMonth: false })
-      } else {
-        week.push({ day: dayCounter, isCurrentMonth: true })
-        dayCounter++
-      }
+      week.push({
+        day: start.date(),
+        isCurrentMonth: start.month() === month.month(),
+      })
+      start = start.add(1, 'day')
     }
     matrix.push(week)
-    if (dayCounter > daysInMonth) break
+    if (start.isAfter(lastDay) && start.day() === 1) break
   }
   return matrix
 }
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
 .cost-tbl__columns {
   display: flex;
   flex-direction: row;
@@ -85,6 +86,7 @@ function getCalendarMatrix(month) {
   font-weight: 400;
   color: rgba(153, 153, 153, 1);
 }
+
 .cost-border {
   padding-left: 0px;
   padding-top: 5.75px;
@@ -94,7 +96,9 @@ function getCalendarMatrix(month) {
 .months-scroll-wrapper {
   height: 396px;
   overflow-y: auto;
+  direction: ltr;
   scrollbar-width: thin;
+  scrollbar-color: rgba(217, 217, 217, 1);
   scrollbar-gutter: stable;
 }
 .months-scroll-wrapper::-webkit-scrollbar {
@@ -104,13 +108,17 @@ function getCalendarMatrix(month) {
   background: rgba(217, 217, 217, 1);
   border-radius: 30px;
 }
-.months-scroll-wrapper::-webkit-scrollbar-thumb {
-  border-radius: 30px;
-  height: 100px;
-  background: #bbb;
+.months-scroll-wrapper::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+  width: 0;
 }
 .months-scroll-wrapper::-webkit-scrollbar-corner {
   background: rgba(217, 217, 217, 1);
+}
+.months-scroll-wrapper::-webkit-scrollbar-thumb {
+  border-radius: 30px;
+  height: 100px;
 }
 
 .months-list {
@@ -131,17 +139,12 @@ function getCalendarMatrix(month) {
 }
 
 .calendar-table {
-  height: 224px;
-}
-.calendar-table__block {
-  width: 305px;
-  display: flex;
-  flex-wrap: wrap;
-  flex-direction: column;
-  align-content: center;
-  justify-content: flex-start;
-  align-items: stretch;
-  gap: 6px;
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 1px 6px 0 rgba(0, 0, 0, 0.04);
 }
 
 .calendar-table thead tr {
@@ -152,13 +155,14 @@ function getCalendarMatrix(month) {
 }
 
 .calendar-day {
-  width: 40px;
-  height: 40px;
-  padding: 10px 15px 10px 15px;
-  border-radius: 60px;
-  background: rgba(244, 245, 246, 1);
-  font-size: 12px;
-  font-weight: 400;
+  text-align: center;
+  padding: 10px 0;
+  min-width: 38px;
+  border: 1px solid #f0f0f0;
+  font-size: 13px;
+  color: #222;
+  background: #fff;
+  user-select: none;
 }
 
 .calendar-day.other-month {

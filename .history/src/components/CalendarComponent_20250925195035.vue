@@ -18,7 +18,7 @@
           {{ month.format('MMMM YYYY').replace(/^./, (m) => m.toUpperCase()) }}
         </div>
         <table class="calendar-table">
-          <tbody class="calendar-table__block">
+          <tbody>
             <tr v-for="(week, wIdx) in getCalendarMatrix(month)" :key="wIdx">
               <td
                 v-for="(cell, dIdx) in week"
@@ -131,17 +131,12 @@ function getCalendarMatrix(month) {
 }
 
 .calendar-table {
-  height: 224px;
-}
-.calendar-table__block {
-  width: 305px;
-  display: flex;
-  flex-wrap: wrap;
-  flex-direction: column;
-  align-content: center;
-  justify-content: flex-start;
-  align-items: stretch;
-  gap: 6px;
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 1px 6px 0 rgba(0, 0, 0, 0.04);
 }
 
 .calendar-table thead tr {
@@ -152,13 +147,14 @@ function getCalendarMatrix(month) {
 }
 
 .calendar-day {
-  width: 40px;
-  height: 40px;
-  padding: 10px 15px 10px 15px;
-  border-radius: 60px;
-  background: rgba(244, 245, 246, 1);
-  font-size: 12px;
-  font-weight: 400;
+  text-align: center;
+  padding: 10px 0;
+  min-width: 38px;
+  border: 1px solid #f0f0f0;
+  font-size: 13px;
+  color: #222;
+  background: #fff;
+  user-select: none;
 }
 
 .calendar-day.other-month {

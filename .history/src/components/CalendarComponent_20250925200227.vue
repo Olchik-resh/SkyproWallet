@@ -131,10 +131,8 @@ function getCalendarMatrix(month) {
 }
 
 .calendar-table {
-  height: 224px;
-}
-.calendar-table__block {
   width: 305px;
+  height: 224px;
   display: flex;
   flex-wrap: wrap;
   flex-direction: column;
@@ -142,6 +140,9 @@ function getCalendarMatrix(month) {
   justify-content: flex-start;
   align-items: stretch;
   gap: 6px;
+}
+.calendar-table__block{
+di
 }
 
 .calendar-table thead tr {

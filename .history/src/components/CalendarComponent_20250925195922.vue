@@ -18,7 +18,7 @@
           {{ month.format('MMMM YYYY').replace(/^./, (m) => m.toUpperCase()) }}
         </div>
         <table class="calendar-table">
-          <tbody class="calendar-table__block">
+          <tbody>
             <tr v-for="(week, wIdx) in getCalendarMatrix(month)" :key="wIdx">
               <td
                 v-for="(cell, dIdx) in week"
@@ -131,10 +131,8 @@ function getCalendarMatrix(month) {
 }
 
 .calendar-table {
-  height: 224px;
-}
-.calendar-table__block {
   width: 305px;
+  height: 224px;
   display: flex;
   flex-wrap: wrap;
   flex-direction: column;
@@ -157,8 +155,6 @@ function getCalendarMatrix(month) {
   padding: 10px 15px 10px 15px;
   border-radius: 60px;
   background: rgba(244, 245, 246, 1);
-  font-size: 12px;
-  font-weight: 400;
 }
 
 .calendar-day.other-month {

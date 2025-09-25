@@ -24,9 +24,6 @@ import CalendarComponent from './CalendarComponent.vue'
 </script>
 
 <style lang="css">
-table {
-  border-spacing: 0px;
-}
 .cost__conteiner {
   margin-left: 120px;
   padding-top: 36px;
@@ -48,14 +45,14 @@ table {
   height: 540px;
   border-radius: 30px;
   box-shadow: 0px 20px 67px -12px rgba(0, 0, 0, 0.13);
-  background: rgba(255, 255, 255, 1);
+  background:  rgba(255, 255, 255, 1));
 }
 .cost-tbl__chart {
   width: 789px;
   height: 540px;
   border-radius: 30px;
   box-shadow: 0px 20px 67px -12px rgba(0, 0, 0, 0.13);
-  background: rgba(255, 255, 255, 1);
+  background:  rgba(255, 255, 255, 1);
 }
 .tbl__ttl {
   padding: 32px;
