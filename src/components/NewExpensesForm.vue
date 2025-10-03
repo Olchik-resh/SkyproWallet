@@ -9,13 +9,18 @@
         v-model="form.description"
         type="text"
         class="expense-input"
-        :class="{ valid: validateDescription(form.description) }"
+        :class="{
+          'input--error': triedSubmit && !validateDescription(form.description),
+          valid: validateDescription(form.description),
+        }"
         placeholder="Введите описание"
-        required
       />
 
       <!-- Категория -->
-      <label class="expense-label">Категория</label>
+      <label class="expense-label">
+        Категория
+        <span v-if="showCategoryError" class="star-error">*</span>
+      </label>
       <div class="categories-grid">
         <button
           v-for="cat in categories"
@@ -31,26 +36,38 @@
       </div>
 
       <!-- Дата -->
-      <label class="expense-label">Дата</label>
+      <label class="expense-label">
+        Дата
+        <span v-if="showDateError" class="star-error">*</span>
+      </label>
       <input
         v-model="form.date"
         type="date"
-        :class="{ valid: validateDate(form.date) }"
+        :class="{
+          'input--error': triedSubmit && !validateDate(form.date),
+          valid: validateDate(form.date),
+        }"
         class="expense-input"
-        required
       />
 
       <!-- Сумма -->
-      <label class="expense-label">Сумма</label>
+      <label class="expense-label">
+        Сумма
+        <span v-if="showAmountError" class="star-error">*</span>
+      </label>
       <input
         v-model="form.amount"
         type="number"
         class="expense-input"
-        :class="{ valid: validateAmount(form.amount) }"
+        :class="{
+          'input--error': triedSubmit && !validateAmount(form.amount),
+          valid: validateAmount(form.amount),
+        }"
         min="1"
-        required
         placeholder="0"
       />
+
+      <p v-if="errorMessage && triedSubmit" class="error-message">{{ errorMessage }}</p>
 
       <!-- Кнопка добавить -->
       <button type="submit" class="add-btn">Добавить новый расход</button>
@@ -59,7 +76,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+
+// 1. Получаем emit
+const emit = defineEmits(['add-expense'])
 
 const categories = [
   {
@@ -121,6 +141,12 @@ const categories = [
 `,
   },
 ]
+const showCategoryError = computed(() => triedSubmit.value && !form.value.category)
+const showDateError = computed(() => triedSubmit.value && !validateDate(form.value.date))
+const showAmountError = computed(() => triedSubmit.value && !validateAmount(form.value.amount))
+
+const errorMessage = ref('')
+const triedSubmit = ref(false)
 
 const form = ref({
   description: '',
@@ -128,26 +154,39 @@ const form = ref({
   date: '',
   amount: '',
 })
-
-function addExpense() {
-  alert('Расход добавлен: ' + JSON.stringify(form.value))
-
-  form.value = {
-    description: '',
-    category: '',
-    date: '',
-    amount: '',
-  }
-}
-
+// 2. Валидации
 function validateDescription(val) {
-  return !!val.trim() // не пустое
+  return !!val.trim()
 }
 function validateDate(val) {
-  return !!val // выбрана дата
+  return !!val
 }
 function validateAmount(val) {
-  return Number(val) > 0 // сумма больше 0
+  return Number(val) > 0
+}
+
+// 3. Функция добавления расхода
+function addExpense() {
+  triedSubmit.value = true
+  errorMessage.value = ''
+  if (
+    !validateDescription(form.value.description) ||
+    !validateDate(form.value.date) ||
+    !validateAmount(form.value.amount) ||
+    !form.value.category
+  ) {
+    errorMessage.value = 'Заполните все поля корректно!'
+    return
+  }
+  emit('add-expense', {
+    description: form.value.description,
+    category: form.value.category,
+    date: form.value.date,
+    amount: Number(form.value.amount),
+  })
+  triedSubmit.value = false
+  errorMessage.value = ''
+  form.value = { description: '', category: '', date: '', amount: '' }
 }
 </script>
 
@@ -179,6 +218,13 @@ function validateAmount(val) {
   border-radius: 6px;
   color: rgba(153, 153, 153, 1);
   font-family: Montserrat;
+}
+
+.expense-input:focus {
+  outline: none;
+  border-color: #7334ea;
+  background: #f1ebfd;
+  color: #000000;
 }
 
 .categories-grid {
@@ -233,5 +279,18 @@ function validateAmount(val) {
   background: #f1ebfd;
   border-color: #7334ea;
   color: #000000;
+}
+
+.input--error {
+  box-sizing: border-box;
+  border: 0.5px solid rgba(242, 80, 80, 1);
+  border-radius: 6px;
+  background-color: #ffebeb;
+}
+.star-error {
+  color: #b80000;
+  font-weight: bold;
+  margin-left: 4px;
+  font-size: 1.2em;
 }
 </style>

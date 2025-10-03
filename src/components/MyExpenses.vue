@@ -3,18 +3,43 @@
     <h1 class="text-ttl">Мои расходы</h1>
     <div class="tbl">
       <div class="tbl__expens">
-        <TblExpenses />
+        <TblExpenses :expenses="expenses" @remove-expense="removeExpense" />
       </div>
       <div class="tbl__new-expens">
-        <NewExpensesForm />
+        <NewExpensesForm @add-expense="addExpense" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import NewExpensesForm from './NewExpensesForm.vue'
 import TblExpenses from './TblExpenses.vue'
+
+const expenses = ref([])
+
+onMounted(() => {
+  const saved = localStorage.getItem('expenses')
+  if (saved) {
+    expenses.value = JSON.parse(saved)
+  }
+})
+
+function addExpense(expense) {
+  expense.id = Date.now()
+  expenses.value.push(expense)
+  saveExpenses(expenses.value)
+}
+
+function removeExpense(id) {
+  expenses.value = expenses.value.filter((exp) => exp.id !== id)
+  saveExpenses(expenses.value)
+}
+
+function saveExpenses(expenses) {
+  localStorage.setItem('expenses', JSON.stringify(expenses))
+}
 </script>
 
 <style lang="scss">

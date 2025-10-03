@@ -399,11 +399,6 @@ button,
 .input--error input::placeholder {
   color: #000000;
 }
-.input--error .star {
-  color: #de2b2b;
-  margin-left: 4px;
-  font-weight: bold;
-}
 .button--active {
   background: #7334ea !important;
   color: #fff !important;
@@ -420,11 +415,7 @@ button,
   font-weight: 400;
   text-align: center;
 }
-.star {
-  color: red;
-  font-size: 1.2em;
-  margin-left: 5px;
-}
+
 .btn__here {
   text-decoration: underline;
 }

@@ -44,37 +44,17 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+const { expenses } = defineProps({
+  expenses: {
+    type: Array,
+    required: true,
+  },
+})
 
-const expenses = ref([
-  { id: 1, description: 'Описание', category: 'Еда', date: '07.09.25', amount: 250 },
-  { id: 2, description: 'Описание', category: 'Транспорт', date: '10.09.25', amount: 60 },
-  { id: 3, description: 'Описание', category: 'Другое', date: '15.09.25', amount: 500 },
-  { id: 1, description: 'Описание', category: 'Еда', date: '07.09.25', amount: 250 },
-  { id: 2, description: 'Описание', category: 'Транспорт', date: '10.09.25', amount: 60 },
-  { id: 3, description: 'Описание', category: 'Другое', date: '15.09.25', amount: 500 },
-  { id: 1, description: 'Описание', category: 'Еда', date: '07.09.25', amount: 250 },
-  { id: 2, description: 'Описание', category: 'Транспорт', date: '10.09.25', amount: 60 },
-  { id: 1, description: 'Описание', category: 'Еда', date: '07.09.25', amount: 250 },
-  { id: 2, description: 'Описание', category: 'Транспорт', date: '10.09.25', amount: 60 },
-  { id: 3, description: 'Описание', category: 'Другое', date: '15.09.25', amount: 500 },
-  { id: 1, description: 'Описание', category: 'Еда', date: '07.09.25', amount: 250 },
-  { id: 2, description: 'Описание', category: 'Транспорт', date: '10.09.25', amount: 60 },
-  { id: 3, description: 'Описание', category: 'Другое', date: '15.09.25', amount: 500 },
-  { id: 1, description: 'Описание', category: 'Еда', date: '07.09.25', amount: 250 },
-  { id: 2, description: 'Описание', category: 'Транспорт', date: '10.09.25', amount: 60 },
-  { id: 1, description: 'Описание', category: 'Еда', date: '07.09.25', amount: 250 },
-  { id: 2, description: 'Описание', category: 'Транспорт', date: '10.09.25', amount: 60 },
-  { id: 3, description: 'Описание', category: 'Другое', date: '15.09.25', amount: 500 },
-  { id: 1, description: 'Описание', category: 'Еда', date: '07.09.25', amount: 250 },
-  { id: 2, description: 'Описание', category: 'Транспорт', date: '10.09.25', amount: 60 },
-  { id: 3, description: 'Описание', category: 'Другое', date: '15.09.25', amount: 500 },
-  { id: 1, description: 'Описание', category: 'Еда', date: '07.09.25', amount: 250 },
-  { id: 2, description: 'Описание', category: 'Транспорт', date: '10.09.25', amount: 60 },
-])
+const emit = defineEmits(['remove-expense'])
 
 function removeExpense(id) {
-  expenses.value = expenses.value.filter((exp) => exp.id !== id)
+  emit('remove-expense', id)
 }
 
 function formatDate(date) {
@@ -175,6 +155,7 @@ td.category-col {
 }
 td.date-col {
   width: 142px;
+  display: flex;
 }
 td.amount-col {
   width: 145px;
