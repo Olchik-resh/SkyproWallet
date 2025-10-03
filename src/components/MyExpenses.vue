@@ -6,14 +6,14 @@
         <TblExpenses />
       </div>
       <div class="tbl__new-expens">
-        <NewExpenses />
+        <NewExpensesForm />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import NewExpenses from './NewExpenses.vue'
+import NewExpensesForm from './NewExpensesForm.vue'
 import TblExpenses from './TblExpenses.vue'
 </script>
 

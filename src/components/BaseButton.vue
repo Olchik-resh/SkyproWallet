@@ -1,5 +1,10 @@
 <template>
-  <button :class="['button', type ?? 'primary']" class="modal__btn" id="btnEnter">
+  <button
+    :type="type || 'button'"
+    :disabled="disabled"
+    :class="['button', className, 'modal__btn']"
+    id="btnEnter"
+  >
     <slot></slot>
   </button>
 </template>
@@ -7,6 +12,8 @@
 <script setup>
 defineProps({
   type: String,
+  disabled: Boolean,
+  className: String,
 })
 </script>
 

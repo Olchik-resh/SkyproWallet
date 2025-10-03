@@ -11,7 +11,7 @@ import { onMounted, provide, ref, computed } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 
 const route = useRoute()
-const hideHeaderButtons = computed(() => ['/exit'].includes(route.path))
+const hideHeaderButtons = computed(() => ['/exit', '/sign-in', '/sign-up'].includes(route.path))
 
 const userInfo = ref(null)
 
