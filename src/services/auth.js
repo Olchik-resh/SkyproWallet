@@ -34,25 +34,49 @@
 //   }
 // }
 
+// Примитивная email проверка
+function isEmail(str) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str)
+}
 
-
-// Заглушка для signIn
-export async function signIn({ login, password }) {
+// Минимальная валидация для регистрации
+export async function signUp({ name, login, password }) {
   await new Promise((r) => setTimeout(r, 500))
 
+  if (!name || name.trim().length < 2) {
+    throw new Error('Имя должно быть не менее 2 символов.')
+  }
+  if (!isEmail(login)) {
+    throw new Error('Введите корректный email.')
+  }
+  if (!password || password.length < 6) {
+    throw new Error('Пароль должен быть не менее 6 символов.')
+  }
+
+  // Допустим, email уже занят
+  if (login === 'demo@example.com') {
+    throw new Error('Этот email уже зарегистрирован.')
+  }
+
   return {
-    id: 1,
-    name: 'Демо Пользователь',
+    id: 2,
+    name: name || 'Демо Пользователь',
     login,
   }
 }
 
-// Заглушка для signUp
-export async function signUp({ name, login, password }) {
+// Минимальная валидация для входа
+export async function signIn({ login, password }) {
   await new Promise((r) => setTimeout(r, 500))
+
+  // Пример: только один demo пользователь
+  if (login !== 'demo@example.com' || password !== 'demo123') {
+    throw new Error('Неверный логин или пароль.')
+  }
+
   return {
-    id: 2,
-    name: name || 'Демо Пользователь',
+    id: 1,
+    name: 'Демо Пользователь',
     login,
   }
 }

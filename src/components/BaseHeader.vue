@@ -24,7 +24,7 @@
           <RouterLink to="/my-expenses" class="header-grup__btn">Мои расходы</RouterLink>
           <RouterLink to="/cost-analysis" class="header-grup__btn">Анализ расходов</RouterLink>
         </div>
-        <RouterLink to="/exit" class="header-btn" v-if="!props.hideButtons">Выйти</RouterLink>
+        <RouterLink to="/sign-in" class="header-btn" v-if="!props.hideButtons">Выйти</RouterLink>
       </div>
     </div>
   </header>
@@ -78,7 +78,7 @@ const props = defineProps({
 }
 
 .header-grup__btn.router-link-active {
-  color:  rgba(115, 52, 234, 1);
+  color: rgba(115, 52, 234, 1);
   border-bottom: 2px solid #7a30ff;
   font-weight: 600;
 }
