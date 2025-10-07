@@ -1,13 +1,12 @@
 <template>
   <div class="expenses-graph">
-    <!-- Общая сумма -->
     <div class="total-amount">
       <span class="total-amount__sum">{{ totalAmount.toLocaleString() }}</span>
       <span class="total-amount__currency">₽</span>
     </div>
-    <!-- Период -->
+
     <div class="period-label">Расходы за {{ periodLabel }}</div>
-    <!-- График -->
+
     <div class="bars">
       <div class="bar" v-for="cat in categories" :key="cat.key">
         <div class="bar__sum">
@@ -29,8 +28,17 @@
 
 <script setup>
 import { computed } from 'vue'
+import dayjs from 'dayjs'
 
-// Категории и цвета
+const props = defineProps({
+  periodStart: Object,
+  periodEnd: Object,
+  allExpenses: {
+    type: Array,
+    required: true,
+  },
+})
+
 const categories = [
   { key: 'food', title: 'Еда', color: '#D9B6FF' },
   { key: 'transport', title: 'Транспорт', color: '#FFB53D' },
@@ -40,24 +48,27 @@ const categories = [
   { key: 'other', title: 'Другое', color: '#FFB9B8' },
 ]
 
-// Пример исходных данных (замените на ваши данные!)
-const expenses = [
-  { category: 'food', amount: 1230 },
-  { category: 'transport', amount: 980 },
-  { category: 'home', amount: 2130 },
-  { category: 'entertainment', amount: 1100 },
-  { category: 'education', amount: 450 },
-  { category: 'other', amount: 320 },
-]
+const expenses = computed(() => {
+  const items = props.allExpenses || []
+  if (!props.periodStart || !props.periodEnd) return items
+  return items.filter((e) => {
+    const date = dayjs(e.date)
+    return (
+      date.isSameOrAfter(props.periodStart, 'day') && date.isSameOrBefore(props.periodEnd, 'day')
+    )
+  })
+})
 
-// Входные параметры периода (замените на свои, если надо)
-const periodLabel = '01 июня – 07 июня 2024'
+const periodLabel = computed(() => {
+  if (!props.periodStart || !props.periodEnd) return 'все время'
 
-// --- Логика для графика ---
+  return `${dayjs(props.periodStart).format('DD MMMM')} – ${dayjs(props.periodEnd).format('DD MMMM YYYY')}`
+})
+
 const categorySums = computed(() => {
   const sums = {}
   for (const cat of categories) {
-    sums[cat.key] = expenses
+    sums[cat.key] = expenses.value
       .filter((e) => e.category === cat.key)
       .reduce((sum, e) => sum + e.amount, 0)
   }

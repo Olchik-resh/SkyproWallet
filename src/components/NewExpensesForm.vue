@@ -268,7 +268,6 @@ function addExpense() {
   background: rgba(115, 52, 234, 1);
   font-weight: 600;
   cursor: pointer;
-  margin-bottom: 32px;
   transition: background 0.2s;
 }
 

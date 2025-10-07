@@ -1,34 +1,43 @@
 <template>
-  <div class="cost__conteiner">
+  <div class="cost__container">
     <h1 class="text-ttl">Анализ расходов</h1>
+
     <div class="cost-tbl">
       <div class="cost-tbl__period">
-        <table>
-          <h2 class="tbl__ttl">Период</h2>
-          <div>
-            <CalendarComponent />
-          </div>
-        </table>
+        <h2 class="tbl__ttl">Период</h2>
+        <CalendarComponent
+          :periodStart="periodStart"
+          :periodEnd="periodEnd"
+          @update:periodStart="periodStart = $event"
+          @update:periodEnd="periodEnd = $event"
+        />
       </div>
+
       <div class="cost-tbl__chart">
-        <table>
-          <ChartWrapper />
-        </table>
+        <ChartWrapper
+          :periodStart="periodStart"
+          :periodEnd="periodEnd"
+          :allExpenses="expensesList"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import CalendarComponent from './CalendarComponent.vue'
 import ChartWrapper from './ChartWrapper.vue'
+
+const periodStart = ref(null)
+const periodEnd = ref(null)
 </script>
 
 <style lang="css">
 table {
   border-spacing: 0px;
 }
-.cost__conteiner {
+.cost__container {
   margin-left: 120px;
   padding-top: 36px;
   margin-right: 120px;

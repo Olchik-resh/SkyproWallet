@@ -77,7 +77,7 @@ table {
 }
 .tbl__new-expens {
   width: 379px;
-  height: 100%;
+  height: 618px;
   border-radius: 30px;
   box-shadow: 0px 20px 67px -12px rgba(0, 0, 0, 0.13);
   background: rgba(255, 255, 255, 1);

@@ -30,7 +30,19 @@
                 :class="[
                   'calendar-day',
                   { 'other-month': !cell.isCurrentMonth },
-                  { selected: isSelected(month, cell) },
+                  { selected: isInPeriod(month, cell) },
+                  {
+                    'period-start':
+                      cell.isCurrentMonth &&
+                      periodStart &&
+                      month.date(cell.day).isSame(periodStart.value),
+                  },
+                  {
+                    'period-end':
+                      cell.isCurrentMonth &&
+                      periodEnd &&
+                      month.date(cell.day).isSame(periodEnd.value),
+                  },
                 ]"
                 @click="selectDate(month, cell)"
               >
@@ -47,25 +59,61 @@
 <script setup>
 import dayjs from 'dayjs'
 import 'dayjs/locale/ru'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { defineEmits } from 'vue'
 
 dayjs.locale('ru')
-
-const selectedDate = ref(null)
 
 const monthsCount = 13
 const monthsArray = Array.from({ length: monthsCount }, (_, idx) =>
   dayjs().startOf('month').add(idx, 'month'),
 )
 
+const periodStart = ref(null)
+const periodEnd = ref(null)
+
 function selectDate(month, cell) {
   if (!cell.isCurrentMonth || !cell.day) return
-  selectedDate.value = month.date(cell.day).format('YYYY-MM-DD')
+  const clickedDate = month.date(cell.day).startOf('day')
+
+  if (periodStart.value && periodEnd.value) {
+    periodStart.value = clickedDate
+    periodEnd.value = null
+    return
+  }
+
+  if (!periodStart.value) {
+    periodStart.value = clickedDate
+    periodEnd.value = null
+    return
+  }
+
+  if (!periodEnd.value) {
+    if (clickedDate.isBefore(periodStart.value)) {
+      periodEnd.value = periodStart.value
+      periodStart.value = clickedDate
+    } else {
+      periodEnd.value = clickedDate
+    }
+    return
+  }
 }
 
-function isSelected(month, cell) {
+function isInPeriod(month, cell) {
   if (!cell.isCurrentMonth || !cell.day) return false
-  return selectedDate.value === month.date(cell.day).format('YYYY-MM-DD')
+  const date = month.date(cell.day).startOf('day')
+  if (periodStart.value && periodEnd.value) {
+    return (
+      date.isSame(periodStart.value) ||
+      date.isSame(periodEnd.value) ||
+      (date.isAfter(periodStart.value) && date.isBefore(periodEnd.value))
+    )
+  }
+
+  if (periodStart.value && !periodEnd.value) {
+    return date.isSame(periodStart.value)
+  }
+  return false
 }
 
 function getCalendarMatrix(month) {
@@ -92,6 +140,14 @@ function getCalendarMatrix(month) {
   }
   return matrix
 }
+
+const emit = defineEmits(['update:periodStart', 'update:periodEnd', 'update:period'])
+
+watch([periodStart, periodEnd], ([start, end]) => {
+  emit('update:periodStart', start)
+  emit('update:periodEnd', end)
+  emit('update:period', { start, end })
+})
 </script>
 
 <style lang="scss">
@@ -121,6 +177,7 @@ function getCalendarMatrix(month) {
   width: 379px;
   overflow-y: auto;
   scrollbar-gutter: stable;
+  cursor: pointer;
 }
 .months-scroll-wrapper::-webkit-scrollbar {
   width: 6px;
@@ -185,8 +242,8 @@ function getCalendarMatrix(month) {
 }
 
 .calendar-day.other-month {
-  color: #bdbdbd;
-  background: #f7f7f7;
+  color: #ffffff;
+  background-color: #ffffff;
 }
 
 .calendar-day.selected {

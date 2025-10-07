@@ -34,12 +34,13 @@
 //   }
 // }
 
-// Примитивная email проверка
+
+let users = []
+
 function isEmail(str) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str)
 }
 
-// Минимальная валидация для регистрации
 export async function signUp({ name, login, password }) {
   await new Promise((r) => setTimeout(r, 500))
 
@@ -53,30 +54,36 @@ export async function signUp({ name, login, password }) {
     throw new Error('Пароль должен быть не менее 6 символов.')
   }
 
-  // Допустим, email уже занят
-  if (login === 'demo@example.com') {
+  if (users.find((user) => user.login === login)) {
     throw new Error('Этот email уже зарегистрирован.')
   }
 
-  return {
-    id: 2,
-    name: name || 'Демо Пользователь',
+  const user = {
+    id: users.length + 1,
+    name: name.trim(),
     login,
+    password,
+  }
+  users.push(user)
+
+  return {
+    id: user.id,
+    name: user.name,
+    login: user.login,
   }
 }
 
-// Минимальная валидация для входа
 export async function signIn({ login, password }) {
   await new Promise((r) => setTimeout(r, 500))
 
-  // Пример: только один demo пользователь
-  if (login !== 'demo@example.com' || password !== 'demo123') {
+  const user = users.find((u) => u.login === login && u.password === password)
+  if (!user) {
     throw new Error('Неверный логин или пароль.')
   }
 
   return {
-    id: 1,
-    name: 'Демо Пользователь',
-    login,
+    id: user.id,
+    name: user.name,
+    login: user.login,
   }
 }
