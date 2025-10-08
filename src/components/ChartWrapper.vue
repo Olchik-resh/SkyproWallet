@@ -5,7 +5,10 @@
       <span class="total-amount__currency">₽</span>
     </div>
 
-    <div class="period-label">Расходы за {{ periodLabel }}</div>
+    <div class="period-label">
+      Расходы за
+      <span v-if="periodLabel"> {{ periodLabel }}</span>
+    </div>
 
     <div class="bars">
       <div class="bar" v-for="cat in categories" :key="cat.key">
@@ -27,12 +30,13 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import dayjs from 'dayjs'
+import 'dayjs/locale/ru'
 
 const props = defineProps({
-  periodStart: Object,
-  periodEnd: Object,
+  periodStart: [Object, String, Number],
+  periodEnd: [Object, String, Number],
   allExpenses: {
     type: Array,
     required: true,
@@ -40,29 +44,32 @@ const props = defineProps({
 })
 
 const categories = [
-  { key: 'food', title: 'Еда', color: '#D9B6FF' },
-  { key: 'transport', title: 'Транспорт', color: '#FFB53D' },
-  { key: 'home', title: 'Жилье', color: '#6EE4FE' },
-  { key: 'entertainment', title: 'Развлечения', color: '#B0AEFF' },
-  { key: 'education', title: 'Образование', color: '#BCEC30' },
-  { key: 'other', title: 'Другое', color: '#FFB9B8' },
+  { key: 'Еда', title: 'Еда', color: '#D9B6FF' },
+  { key: 'Транспорт', title: 'Транспорт', color: '#FFB53D' },
+  { key: 'Жилье', title: 'Жилье', color: '#6EE4FE' },
+  { key: 'Развлечения', title: 'Развлечения', color: '#B0AEFF' },
+  { key: 'Образование', title: 'Образование', color: '#BCEC30' },
+  { key: 'Другое', title: 'Другое', color: '#FFB9B8' },
 ]
 
-const expenses = computed(() => {
-  const items = props.allExpenses || []
-  if (!props.periodStart || !props.periodEnd) return items
-  return items.filter((e) => {
-    const date = dayjs(e.date)
-    return (
-      date.isSameOrAfter(props.periodStart, 'day') && date.isSameOrBefore(props.periodEnd, 'day')
-    )
-  })
-})
+const expenses = computed(() => props.allExpenses || [])
 
 const periodLabel = computed(() => {
-  if (!props.periodStart || !props.periodEnd) return 'все время'
+  if (!props.periodStart && !props.periodEnd) return 'всё время'
+  const start = props.periodStart ? dayjs(props.periodStart) : null
+  const end = props.periodEnd ? dayjs(props.periodEnd) : null
 
-  return `${dayjs(props.periodStart).format('DD MMMM')} – ${dayjs(props.periodEnd).format('DD MMMM YYYY')}`
+  if (start && !end) {
+    return start.format('D MMMM YYYY')
+  }
+
+  if (start && end) {
+    if (start.isSame(end, 'day')) {
+      return start.format('D MMMM YYYY')
+    }
+    return `${start.format('D MMMM YYYY')} – ${end.format('D MMMM YYYY')}`
+  }
+  return ''
 })
 
 const categorySums = computed(() => {
@@ -70,17 +77,26 @@ const categorySums = computed(() => {
   for (const cat of categories) {
     sums[cat.key] = expenses.value
       .filter((e) => e.category === cat.key)
-      .reduce((sum, e) => sum + e.amount, 0)
+      .reduce((sum, e) => sum + Number(e.amount || 0), 0)
   }
   return sums
 })
 
+
 const totalAmount = computed(() => Object.values(categorySums.value).reduce((a, b) => a + b, 0))
+
 
 const getBarHeight = (catKey) => {
   const max = Math.max(...Object.values(categorySums.value), 1)
   return Math.round((categorySums.value[catKey] / max) * 100)
 }
+
+watch(
+  () => props.allExpenses,
+  (newVal) => {
+    console.log('allExpenses in ChartWrapper обновились:', newVal)
+  },
+)
 </script>
 
 <style scoped>

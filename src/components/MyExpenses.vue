@@ -3,7 +3,7 @@
     <h1 class="text-ttl">Мои расходы</h1>
     <div class="tbl">
       <div class="tbl__expens">
-        <TblExpenses :expenses="expenses" @remove-expense="removeExpense" />
+        <TblExpenses :expenses="filteredExpenses" />
       </div>
       <div class="tbl__new-expens">
         <NewExpensesForm @add-expense="addExpense" />
@@ -13,33 +13,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { useExpenses } from '../services/useExpenses.js'
 import NewExpensesForm from './NewExpensesForm.vue'
 import TblExpenses from './TblExpenses.vue'
+import { onMounted } from 'vue'
+import dayjs from 'dayjs'
 
-const expenses = ref([])
+const { addExpense, periodStart, periodEnd, filteredExpenses } = useExpenses()
 
 onMounted(() => {
-  const saved = localStorage.getItem('expenses')
-  if (saved) {
-    expenses.value = JSON.parse(saved)
+  const periodSaved = localStorage.getItem('period')
+  if (periodSaved) {
+    const { start, end } = JSON.parse(periodSaved)
+    periodStart.value = start ? dayjs(start) : null
+    periodEnd.value = end ? dayjs(end) : null
   }
 })
-
-function addExpense(expense) {
-  expense.id = Date.now()
-  expenses.value.push(expense)
-  saveExpenses(expenses.value)
-}
-
-function removeExpense(id) {
-  expenses.value = expenses.value.filter((exp) => exp.id !== id)
-  saveExpenses(expenses.value)
-}
-
-function saveExpenses(expenses) {
-  localStorage.setItem('expenses', JSON.stringify(expenses))
-}
 </script>
 
 <style lang="scss">

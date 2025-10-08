@@ -1,4 +1,9 @@
 <template>
+  <div style="display: none">
+    <label>
+      <input v-model="singleDayMode" />
+    </label>
+  </div>
   <thead>
     <tr class="cost-tbl__columns">
       <th class="weekday">ПН</th>
@@ -11,46 +16,50 @@
     </tr>
     <div class="cost-border"></div>
   </thead>
-  <div class="months-scroll-wrapper">
-    <div class="months-list">
-      <div v-for="month in monthsArray" :key="month.format('YYYY-MM')" class="calendar-month-block">
-        <div class="calendar__month-label">
-          {{ month.format('MMMM YYYY').replace(/^./, (m) => m.toUpperCase()) }}
-        </div>
-        <table class="calendar-table">
-          <tbody class="calendar-table__block">
-            <tr
-              class="calendar-table__block calendar-table__block_week"
-              v-for="(week, wIdx) in getCalendarMatrix(month)"
-              :key="wIdx"
-            >
-              <td
-                v-for="(cell, dIdx) in week"
-                :key="dIdx"
-                :class="[
-                  'calendar-day',
-                  { 'other-month': !cell.isCurrentMonth },
-                  { selected: isInPeriod(month, cell) },
-                  {
-                    'period-start':
-                      cell.isCurrentMonth &&
-                      periodStart &&
-                      month.date(cell.day).isSame(periodStart.value),
-                  },
-                  {
-                    'period-end':
-                      cell.isCurrentMonth &&
-                      periodEnd &&
-                      month.date(cell.day).isSame(periodEnd.value),
-                  },
-                ]"
-                @click="selectDate(month, cell)"
+  <div class="calendar-root" @click="onCalendarAreaClick">
+    <div class="months-scroll-wrapper">
+      <div class="months-list">
+        <div
+          v-for="month in monthsArray"
+          :key="month.format('YYYY-MM')"
+          class="calendar-month-block"
+        >
+          <div class="calendar__month-label">
+            {{ month.format('MMMM YYYY').replace(/^./, (m) => m.toUpperCase()) }}
+          </div>
+          <table class="calendar-table">
+            <tbody class="calendar-table__block">
+              <tr
+                class="calendar-table__block calendar-table__block_week"
+                v-for="(week, wIdx) in getCalendarMatrix(month)"
+                :key="wIdx"
               >
-                {{ cell.day }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                <td
+                  v-for="(cell, dIdx) in week"
+                  :key="dIdx"
+                  :class="[
+                    'calendar-day',
+                    { 'other-month': !cell.isCurrentMonth },
+                    { selected: isInPeriod(month, cell) },
+                    {
+                      'period-start':
+                        cell.isCurrentMonth &&
+                        periodStart &&
+                        month.date(cell.day).isSame(periodStart),
+                    },
+                    {
+                      'period-end':
+                        cell.isCurrentMonth && periodEnd && month.date(cell.day).isSame(periodEnd),
+                    },
+                  ]"
+                  @click.stop="selectDate(month, cell, $event)"
+                >
+                  {{ cell.day }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -59,41 +68,68 @@
 <script setup>
 import dayjs from 'dayjs'
 import 'dayjs/locale/ru'
-import { ref, watch } from 'vue'
-import { defineEmits } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 
 dayjs.locale('ru')
+
+const props = defineProps({
+  periodStart: [String, Object, null],
+  periodEnd: [String, Object, null],
+})
+
+const emit = defineEmits(['update:periodStart', 'update:periodEnd', 'update:period'])
 
 const monthsCount = 13
 const monthsArray = Array.from({ length: monthsCount }, (_, idx) =>
   dayjs().startOf('month').add(idx, 'month'),
 )
 
-const periodStart = ref(null)
-const periodEnd = ref(null)
+const localPeriodStart = ref(props.periodStart ? dayjs(props.periodStart).startOf('day') : null)
+const localPeriodEnd = ref(props.periodEnd ? dayjs(props.periodEnd).startOf('day') : null)
+
+watch(
+  () => [props.periodStart, props.periodEnd],
+  ([newStart, newEnd]) => {
+    localPeriodStart.value = newStart ? dayjs(newStart).startOf('day') : null
+    localPeriodEnd.value = newEnd ? dayjs(newEnd).startOf('day') : null
+  },
+)
+
+watch([localPeriodStart, localPeriodEnd], ([start, end]) => {
+  emit('update:periodStart', start ? start.format('YYYY-MM-DD') : null)
+  emit('update:periodEnd', end ? end.format('YYYY-MM-DD') : null)
+  emit('update:period', {
+    start: start ? start.format('YYYY-MM-DD') : null,
+    end: end ? end.format('YYYY-MM-DD') : null,
+  })
+})
+
+const singleDayMode = ref(false)
 
 function selectDate(month, cell) {
   if (!cell.isCurrentMonth || !cell.day) return
   const clickedDate = month.date(cell.day).startOf('day')
 
-  if (periodStart.value && periodEnd.value) {
-    periodStart.value = clickedDate
-    periodEnd.value = null
+  if (!localPeriodStart.value && !localPeriodEnd.value) {
+    localPeriodStart.value = clickedDate
+    localPeriodEnd.value = clickedDate
     return
   }
 
-  if (!periodStart.value) {
-    periodStart.value = clickedDate
-    periodEnd.value = null
+  if (localPeriodStart.value && localPeriodEnd.value) {
+    localPeriodStart.value = clickedDate
+    localPeriodEnd.value = null
     return
   }
 
-  if (!periodEnd.value) {
-    if (clickedDate.isBefore(periodStart.value)) {
-      periodEnd.value = periodStart.value
-      periodStart.value = clickedDate
+  if (localPeriodStart.value && !localPeriodEnd.value) {
+    if (clickedDate.isBefore(localPeriodStart.value)) {
+      localPeriodEnd.value = localPeriodStart.value
+      localPeriodStart.value = clickedDate
+    } else if (clickedDate.isSame(localPeriodStart.value)) {
+      localPeriodEnd.value = clickedDate
     } else {
-      periodEnd.value = clickedDate
+      localPeriodEnd.value = clickedDate
     }
     return
   }
@@ -102,16 +138,16 @@ function selectDate(month, cell) {
 function isInPeriod(month, cell) {
   if (!cell.isCurrentMonth || !cell.day) return false
   const date = month.date(cell.day).startOf('day')
-  if (periodStart.value && periodEnd.value) {
+  if (localPeriodStart.value && localPeriodEnd.value) {
     return (
-      date.isSame(periodStart.value) ||
-      date.isSame(periodEnd.value) ||
-      (date.isAfter(periodStart.value) && date.isBefore(periodEnd.value))
+      date.isSame(localPeriodStart.value) ||
+      date.isSame(localPeriodEnd.value) ||
+      (date.isAfter(localPeriodStart.value) && date.isBefore(localPeriodEnd.value))
     )
   }
 
-  if (periodStart.value && !periodEnd.value) {
-    return date.isSame(periodStart.value)
+  if (localPeriodStart.value && !localPeriodEnd.value) {
+    return date.isSame(localPeriodStart.value)
   }
   return false
 }
@@ -141,12 +177,17 @@ function getCalendarMatrix(month) {
   return matrix
 }
 
-const emit = defineEmits(['update:periodStart', 'update:periodEnd', 'update:period'])
+function resetPeriod() {
+  localPeriodStart.value = null
+  localPeriodEnd.value = null
+}
 
-watch([periodStart, periodEnd], ([start, end]) => {
-  emit('update:periodStart', start)
-  emit('update:periodEnd', end)
-  emit('update:period', { start, end })
+function onCalendarAreaClick() {
+  resetPeriod()
+}
+
+onMounted(() => {
+  resetPeriod()
 })
 </script>
 

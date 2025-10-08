@@ -1,23 +1,20 @@
 <template>
   <div class="cost__container">
     <h1 class="text-ttl">Анализ расходов</h1>
-
     <div class="cost-tbl">
       <div class="cost-tbl__period">
         <h2 class="tbl__ttl">Период</h2>
         <CalendarComponent
           :periodStart="periodStart"
           :periodEnd="periodEnd"
-          @update:periodStart="periodStart = $event"
-          @update:periodEnd="periodEnd = $event"
+          @update:period="onPeriodUpdate"
         />
       </div>
-
       <div class="cost-tbl__chart">
         <ChartWrapper
+          :allExpenses="filteredExpenses"
           :periodStart="periodStart"
           :periodEnd="periodEnd"
-          :allExpenses="expensesList"
         />
       </div>
     </div>
@@ -25,12 +22,20 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { useExpenses } from '../services/useExpenses.js'
 import CalendarComponent from './CalendarComponent.vue'
 import ChartWrapper from './ChartWrapper.vue'
+import { watch } from 'vue'
 
-const periodStart = ref(null)
-const periodEnd = ref(null)
+const { periodStart, periodEnd, filteredExpenses, setPeriod } = useExpenses()
+
+function onPeriodUpdate({ start, end }) {
+  setPeriod(start, end)
+}
+
+watch(filteredExpenses, (val) => {
+  console.log('filteredExpenses:', val)
+})
 </script>
 
 <style lang="css">

@@ -18,11 +18,11 @@ const router = createRouter({
           component: HomeView,
           children: [
             {
-              path: '/my-expenses',
+              path: 'my-expenses',
               component: () => import('../views/MyExpensesView.vue'),
             },
             {
-              path: '/cost-analysis',
+              path: 'cost-analysis',
               component: () => import('../views/CostAnalysisView.vue'),
             },
           ],
