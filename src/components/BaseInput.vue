@@ -7,7 +7,10 @@
       :id="id"
       :placeholder="placeholder"
       v-model="model"
-      :class="{ 'input--error': error }"
+      :class="{
+        'input--error': error,
+        'input--valid': valid,
+      }"
     />
     <span v-if="error" class="input-star">*</span>
   </div>
@@ -20,6 +23,7 @@ defineProps({
   placeholder: { type: String, default: '' },
   type: { type: String, default: 'text' },
   error: { type: Boolean, default: false },
+  valid: { type: Boolean, default: false },
 })
 const model = defineModel()
 </script>

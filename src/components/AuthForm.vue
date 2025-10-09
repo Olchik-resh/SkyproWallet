@@ -9,10 +9,6 @@
             </div>
             <form class="modal__form-login" @submit.prevent="handleSubmit">
               <BaseInput
-                :class="{
-                  'input--error': showNameError,
-                  'input--valid': isNameValid && (formTouched || touched.name),
-                }"
                 v-show="isSignUp"
                 name="name"
                 id="formname"
@@ -22,14 +18,11 @@
                 @focus="clearError('name')"
                 autocomplete="name"
                 spellcheck="false"
-                :error="showNameError"
+                :valid="isNameValid && (formTouched || touched.name)"
+                :error="nameInvalid && (submitAttempted || touched.name)"
               />
 
               <BaseInput
-                :class="{
-                  'input--error': showLoginError,
-                  'input--valid': isLoginValid && (formTouched || touched.login),
-                }"
                 type="text"
                 name="login"
                 id="formlogin"
@@ -39,14 +32,11 @@
                 @focus="clearError('login')"
                 autocomplete="email"
                 spellcheck="false"
-                :error="showLoginError"
+                :valid="isLoginValid && (formTouched || touched.login)"
+                :error="loginInvalid && (submitAttempted || touched.login)"
               />
 
               <BaseInput
-                :class="{
-                  'input--error': showPasswordError,
-                  'input--valid': isPasswordValid && (formTouched || touched.password),
-                }"
                 type="password"
                 name="password"
                 id="formpassword"
@@ -56,12 +46,13 @@
                 @focus="clearError('password')"
                 autocomplete="current-password"
                 spellcheck="false"
-                :error="showPasswordError"
+                :valid="isPasswordValid && (formTouched || touched.password)"
+                :error="passwordInvalid && (submitAttempted || touched.password)"
               />
 
               <p class="error-message" v-if="error">{{ error }}</p>
 
-              <BaseButton type="submit" :disabled="isButtonDisabled" class="modal__btn">
+              <BaseButton type="submit" :disabled="isFormInvalid" class="modal__btn">
                 {{ isSignUp ? 'Зарегистрироваться' : 'Войти' }}
               </BaseButton>
 
@@ -84,14 +75,13 @@
 </template>
 
 <script setup>
-import { ref, inject, watch, computed } from 'vue'
+import { ref, inject, computed, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import BaseInput from './BaseInput.vue'
 import BaseButton from './BaseButton.vue'
 import { signIn, signUp } from '@/services/auth'
 
 const auth = inject('auth')
-const userInfo = auth?.user
 const router = useRouter()
 
 const props = defineProps({
@@ -104,19 +94,14 @@ const formData = ref({
   password: '',
 })
 
-const loading = ref(false)
-
-const touched = ref({
-  name: false,
-  login: false,
-  password: false,
-})
-
-const submitAttempted = ref(false)
-
-const formTouched = ref(false)
+const touched = ref({ name: false, login: false, password: false })
+function onBlur(field) {
+  touched.value[field] = true
+}
 
 const error = ref('')
+const loading = ref(false)
+const submitAttempted = ref(false)
 
 function validateName(name) {
   return !!name.trim()
@@ -127,99 +112,86 @@ function validateLogin(login) {
 function validatePassword(password) {
   return !!password.trim()
 }
-
-function onBlur(field) {
-  touched.value[field] = true
+function clearError() {
+  error.value = ''
+  // НЕ сбрасываем touched!
 }
 
-function clearError(fieldName) {
-  touched.value[fieldName] = false
-}
+const isNameValid = computed(() => validateName(formData.value.name))
+const isLoginValid = computed(() => validateLogin(formData.value.login))
+const isPasswordValid = computed(() => validatePassword(formData.value.password))
+const formTouched = computed(() => Object.values(touched.value).some(Boolean))
 
-const showNameError = computed(
-  () =>
-    props.isSignUp &&
-    (formTouched.value || touched.value.name) &&
-    !validateName(formData.value.name),
-)
-const showLoginError = computed(
-  () => (formTouched.value || touched.value.login) && !validateLogin(formData.value.login),
-)
-const showPasswordError = computed(
-  () => (formTouched.value || touched.value.password) && !validatePassword(formData.value.password),
-)
+// Кнопка дизэйблится если loading или форма невалидна И была попытка submit или хоть одно поле тронуто
+const nameInvalid = computed(() => props.isSignUp && !validateName(formData.value.name))
+const loginInvalid = computed(() => !validateLogin(formData.value.login))
+const passwordInvalid = computed(() => !validatePassword(formData.value.password))
 
 const isFormInvalid = computed(() => {
-  const isNameValid = props.isSignUp ? validateName(formData.value.name) : true
-  const isLoginValid = validateLogin(formData.value.login)
-  const isPasswordValid = validatePassword(formData.value.password)
-  return !isNameValid || !isLoginValid || !isPasswordValid || loading.value
-})
-
-const isNameValid = computed(() => props.isSignUp && validateName(formData.value.name))
-
-const isLoginValid = computed(() => validateLogin(formData.value.login))
-
-const isPasswordValid = computed(() => validatePassword(formData.value.password))
-
-const isButtonDisabled = computed(() => {
-  if (loading.value) return true
-  // Если была попытка отправки и данные невалидны — дизэйблим
-  if (submitAttempted.value && isFormInvalid.value) return true
-  // В остальных случаях — не дизэйблим
-  return false
+  const invalid = nameInvalid.value || loginInvalid.value || passwordInvalid.value
+  return (
+    loading.value ||
+    (invalid && (submitAttempted.value || Object.values(touched.value).some(Boolean)))
+  )
 })
 
 async function handleSubmit(event) {
-  console.log('submit!')
   event.preventDefault()
   submitAttempted.value = true
-  formTouched.value = true
   error.value = ''
+  loading.value = true
 
-  const isNameValid = props.isSignUp ? validateName(formData.value.name) : true
-  const isLoginValid = validateLogin(formData.value.login)
-  const isPasswordValid = validatePassword(formData.value.password)
+  // Валидация
+  const nameInvalid = props.isSignUp && !validateName(formData.value.name)
+  const loginInvalid = !validateLogin(formData.value.login)
+  const passwordInvalid = !validatePassword(formData.value.password)
 
-  if (!isNameValid || !isLoginValid || !isPasswordValid) {
+  if (nameInvalid || loginInvalid || passwordInvalid) {
+    if (nameInvalid) touched.value.name = true
+    if (loginInvalid) touched.value.login = true
+    if (passwordInvalid) touched.value.password = true
     error.value =
       'Упс! Введенные вами данные некорректны. Введите данные корректно и повторите попытку.'
+    loading.value = false
     return
   }
 
-  loading.value = true
   try {
-    const data = props.isSignUp
+    // Авторизация или регистрация
+    const result = props.isSignUp
       ? await signUp(formData.value)
-      : await signIn({ login: formData.value.login, password: formData.value.password })
+      : await signIn({
+          login: formData.value.login,
+          password: formData.value.password,
+        })
 
-    if (data) {
-      auth.setUserInfo(data)
+    if (result && result.token && result.user) {
+      auth.setUserInfo(result.user)
+      auth.setToken(result.token)
       router.push('/')
-      submitAttempted.value = false
-      formTouched.value = false
+    } else {
+      error.value = 'Ошибка: нет токена или пользователя в ответе.'
     }
   } catch (err) {
-    error.value = err.message
+    error.value = err?.message || 'Ошибка авторизации.'
+    // Покажем ошибку на всех полях
+    if (props.isSignUp) touched.value.name = true
+    touched.value.login = true
+    touched.value.password = true
   } finally {
     loading.value = false
   }
 }
 
-if (userInfo) {
-  watch(
-    userInfo,
-    (newVal) => {
-      console.log('Пользователь изменился:', newVal)
-    },
-    { immediate: true },
-  )
-}
-
-watch(formData, () => {
-  submitAttempted.value = false
-  formTouched.value = false
-})
+// Сброс ошибок при редактировании
+watch(
+  formData,
+  () => {
+    error.value = ''
+    // submitAttempted.value = false // НЕ сбрасываем! иначе кнопка будет всегда активна
+  },
+  { deep: true },
+)
 </script>
 
 <style lang="scss">
