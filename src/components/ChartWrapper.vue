@@ -1,7 +1,7 @@
 <template>
   <div class="expenses-graph">
     <div class="total-amount">
-      <span class="total-amount__sum">{{ totalAmount.toLocaleString() }}</span>
+      <span class="total-amount__sum">{{ totalSum.toLocaleString() }}</span>
       <span class="total-amount__currency">₽</span>
     </div>
 
@@ -52,6 +52,15 @@ const categories = [
   { key: 'Другое', title: 'Другое', color: '#FFB9B8' },
 ]
 
+const categoryMap = {
+  food: 'Еда',
+  transport: 'Транспорт',
+  housing: 'Жилье',
+  joy: 'Развлечения',
+  education: 'Образование',
+  others: 'Другое',
+}
+
 const expenses = computed(() => props.allExpenses || [])
 
 const periodLabel = computed(() => {
@@ -75,16 +84,15 @@ const periodLabel = computed(() => {
 const categorySums = computed(() => {
   const sums = {}
   for (const cat of categories) {
+    const apiKey = Object.keys(categoryMap).find((key) => categoryMap[key] === cat.key)
     sums[cat.key] = expenses.value
-      .filter((e) => e.category === cat.key)
-      .reduce((sum, e) => sum + Number(e.amount || 0), 0)
+      .filter((e) => e.category === apiKey)
+      .reduce((sum, e) => sum + Number(e.sum || 0), 0)
   }
   return sums
 })
 
-
-const totalAmount = computed(() => Object.values(categorySums.value).reduce((a, b) => a + b, 0))
-
+const totalSum = computed(() => Object.values(categorySums.value).reduce((a, b) => a + b, 0))
 
 const getBarHeight = (catKey) => {
   const max = Math.max(...Object.values(categorySums.value), 1)

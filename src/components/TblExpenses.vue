@@ -1,3 +1,4 @@
+<!-- TblExpenses.vue -->
 <template>
   <div class="tbl__expens">
     <h2 class="tbl__ttl">Таблица расходов</h2>
@@ -7,7 +8,7 @@
         <span class="description">Описание</span>
         <span class="category">Категория</span>
         <span class="date">Дата</span>
-        <span class="amount">Сумма</span>
+        <span class="sum">Сумма</span>
         <span class="action"></span>
       </div>
     </section>
@@ -17,9 +18,9 @@
         <tbody>
           <tr v-for="item in expenses" :key="item.id">
             <td class="description-col">{{ item.description }}</td>
-            <td class="category-col">{{ item.category }}</td>
+            <td class="category-col">{{ categoryMap[item.category] || item.category }}</td>
             <td class="date-col">{{ formatDate(item.date) }}</td>
-            <td class="amount-col">{{ item.amount }}</td>
+            <td class="sum-col">{{ item.sum }}</td>
             <td class="action-col">
               <button class="delete-btn" @click="removeExpense(item.id)">
                 <svg viewBox="0 0 12 12" width="12" height="12" fill="none">
@@ -57,14 +58,27 @@ function removeExpense(id) {
   emit('remove-expense', id)
 }
 
+const categoryMap = {
+  food: 'Еда',
+  transport: 'Транспорт',
+  housing: 'Жилье',
+  joy: 'Развлечения',
+  education: 'Образование',
+  others: 'Другое',
+}
+
 function formatDate(date) {
-  return new Date(date).toLocaleDateString('ru-RU')
+  if (!date) return ''
+  const d = new Date(date)
+  if (isNaN(d)) return ''
+  return d.toLocaleDateString('ru-RU')
 }
 </script>
 
 <style lang="scss">
 .tbl__ttl {
-  padding: 32px;
+  padding-top: 32px;
+  padding-left: 32px;
   font-size: 24px;
   font-weight: 700;
 }
@@ -73,6 +87,7 @@ function formatDate(date) {
   table-layout: fixed;
 }
 .expenses-table__columns {
+  padding-top: 32px;
   font-size: 12px;
   color: #999999;
   width: 789px;
@@ -99,7 +114,7 @@ function formatDate(date) {
   display: flex;
   text-align: start;
 }
-.amount {
+.sum {
   width: 92px;
   display: flex;
   text-align: start;
@@ -157,7 +172,7 @@ td.date-col {
   width: 142px;
   display: flex;
 }
-td.amount-col {
+td.sum-col {
   width: 145px;
   padding-bottom: 14px;
 }
