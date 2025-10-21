@@ -2,8 +2,15 @@
   <button
     :type="type || 'button'"
     :disabled="disabled"
-    :class="['button', className, 'modal__btn']"
-    id="btnEnter"
+    :class="[
+      'button',
+      className,
+      'modal__btn',
+      {
+        'button--disabled': disabled,
+        'button--active': active,
+      },
+    ]"
   >
     <slot></slot>
   </button>
@@ -14,10 +21,16 @@ defineProps({
   type: String,
   disabled: Boolean,
   className: String,
+  active: Boolean,
 })
 </script>
 
 <style lang="scss">
+button,
+._btn {
+  cursor: pointer;
+}
+
 .modal__btn {
   width: 313px;
   height: 39px;
@@ -31,6 +44,21 @@ defineProps({
   font-size: 12px;
   font-weight: 600;
   border: none;
-  margin-top: 12px;
+}
+
+.modal__btn:hover {
+  background: #5e1acc;
+}
+
+.button--active {
+  background: #7334ea !important;
+  color: #fff !important;
+  cursor: pointer;
+}
+
+.button--disabled {
+  background: #d0d0d0 !important;
+  color: #999 !important;
+  cursor: not-allowed;
 }
 </style>

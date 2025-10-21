@@ -1,3 +1,4 @@
+<!-- AppLayout.vue -->
 <template>
   <BaseHeader :hideButtons="hideHeaderButtons" />
   <div class="wrapper">
@@ -38,6 +39,9 @@ provide('auth', {
   userInfo,
   setUserInfo,
   removeUserInfo,
+  get token() {
+    return userInfo.value?.token
+  },
 })
 
 onMounted(() => {

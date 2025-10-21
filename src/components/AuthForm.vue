@@ -1,82 +1,81 @@
 <template>
-  <div>
-    <div class="wrapper">
-      <div class="container-signin">
-        <div class="modal">
-          <div class="modal__block">
-            <div class="modal__ttl">
-              <h2>{{ isSignUp ? 'Регистрация' : 'Вход' }}</h2>
-            </div>
-            <form class="modal__form-login" @submit.prevent="handleSubmit">
-              <BaseInput
-                :class="{
-                  'input--error': showNameError,
-                  'input--valid': isNameValid && (formTouched || touched.name),
-                }"
-                v-show="isSignUp"
-                name="name"
-                id="formname"
-                placeholder="Имя"
-                v-model="formData.name"
-                @blur="onBlur('name')"
-                @focus="clearError('name')"
-                autocomplete="name"
-                spellcheck="false"
-                :error="showNameError"
-              />
-
-              <BaseInput
-                :class="{
-                  'input--error': showLoginError,
-                  'input--valid': isLoginValid && (formTouched || touched.login),
-                }"
-                type="text"
-                name="login"
-                id="formlogin"
-                placeholder="Эл.почта"
-                v-model="formData.login"
-                @blur="onBlur('login')"
-                @focus="clearError('login')"
-                autocomplete="email"
-                spellcheck="false"
-                :error="showLoginError"
-              />
-
-              <BaseInput
-                :class="{
-                  'input--error': showPasswordError,
-                  'input--valid': isPasswordValid && (formTouched || touched.password),
-                }"
-                type="password"
-                name="password"
-                id="formpassword"
-                placeholder="Пароль"
-                v-model="formData.password"
-                @blur="onBlur('password')"
-                @focus="clearError('password')"
-                autocomplete="current-password"
-                spellcheck="false"
-                :error="showPasswordError"
-              />
-
-              <p class="error-message" v-if="error">{{ error }}</p>
-
-              <BaseButton type="submit" :disabled="isButtonDisabled" class="modal__btn">
-                {{ isSignUp ? 'Зарегистрироваться' : 'Войти' }}
-              </BaseButton>
-
-              <div v-show="!isSignUp" class="modal__form-group">
-                <p>Нужно зарегистрироваться?</p>
-                <RouterLink to="/sign-up" class="btn__here">Регистрируйтесь здесь</RouterLink>
-              </div>
-              <div v-show="isSignUp" class="modal__form-group">
-                <p>
-                  Уже есть аккаунт?
-                  <RouterLink to="/sign-in" class="btn__here"><br />Войдите здесь</RouterLink>
-                </p>
-              </div>
-            </form>
+  <div class="wrapper">
+    <div class="container-signin">
+      <div class="modal">
+        <div class="modal__block">
+          <div class="modal__ttl">
+            <h2>{{ isSignUp ? 'Регистрация' : 'Вход' }}</h2>
           </div>
+          <form class="modal__form-login" @submit.prevent="handleSubmit">
+            <!-- Имя (только для регистрации) -->
+            <BaseInput
+              v-if="isSignUp"
+              name="name"
+              id="formname"
+              placeholder="Имя"
+              v-model="formData.name"
+              :error="errors.name && (touched.name || submitAttempted)"
+              :touched="touched.name || submitAttempted"
+              @focus="clearError('name')"
+              @input="onInput('name', formData.name, validateName)"
+              autocomplete="name"
+              spellcheck="false"
+            />
+
+            <!-- Email -->
+            <BaseInput
+              type="text"
+              name="login"
+              id="formlogin"
+              placeholder="Эл.почта"
+              v-model="formData.login"
+              :error="errors.login && (touched.login || submitAttempted)"
+              :touched="touched.login || submitAttempted"
+              @focus="clearError('login')"
+              @input="onInput('login', formData.login, validateLogin)"
+              autocomplete="email"
+            />
+
+            <!-- Пароль -->
+            <BaseInput
+              type="password"
+              name="password"
+              id="formpassword"
+              placeholder="Пароль"
+              v-model="formData.password"
+              :error="errors.password && (touched.password || submitAttempted)"
+              :touched="touched.password || submitAttempted"
+              @focus="clearError('password')"
+              @input="onInput('password', formData.password, validatePassword)"
+              autocomplete="current-password"
+            />
+
+            <!-- Сообщение об ошибке -->
+            <p class="error-message" v-if="error">{{ error }}</p>
+
+            <!-- Кнопка отправки -->
+            <BaseButton
+              type="secondary"
+              :fullWidth="true"
+              class="modal__btn-enter"
+              :class="{ error: isButtonDisabled }"
+              :disabled="isButtonDisabled"
+            >
+              {{ isSignUp ? 'Зарегистрироваться' : 'Войти' }}
+            </BaseButton>
+
+            <!-- Переключение между формами -->
+            <div v-if="!isSignUp" class="modal__form-group">
+              <p>Нужно зарегистрироваться?</p>
+              <RouterLink to="/sign-up" class="btn__here">Регистрируйтесь здесь</RouterLink>
+            </div>
+            <div v-else class="modal__form-group">
+              <p>
+                Уже есть аккаунт?
+                <RouterLink to="/sign-in" class="btn__here"><br />Войдите здесь</RouterLink>
+              </p>
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -84,39 +83,27 @@
 </template>
 
 <script setup>
-import { ref, inject, watch, computed } from 'vue'
+import { reactive, ref, computed, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import BaseInput from './BaseInput.vue'
 import BaseButton from './BaseButton.vue'
-import { signIn, signUp } from '@/services/auth'
+import auth from '@/services/auth.js'
+import { inject } from 'vue'
 
-const auth = inject('auth')
-const userInfo = auth?.user
 const router = useRouter()
+const props = defineProps({ isSignUp: Boolean })
+const { setUserInfo } = inject('auth')
 
-const props = defineProps({
-  isSignUp: Boolean,
-})
-
-const formData = ref({
-  name: '',
-  login: '',
-  password: '',
-})
-
-const loading = ref(false)
-
-const touched = ref({
-  name: false,
-  login: false,
-  password: false,
-})
-
-const submitAttempted = ref(false)
-
-const formTouched = ref(false)
+const formData = reactive({ name: '', login: '', password: '' })
+const touched = reactive({ name: false, login: false, password: false })
+const errors = reactive({ name: false, login: false, password: false })
 
 const error = ref('')
+const loading = ref(false)
+const submitAttempted = ref(false)
+
+const ERROR_MESSAGE =
+  'Упс! Введенные вами данные некорректны. Введите данные корректно и повторите попытку.'
 
 function validateName(name) {
   return !!name.trim()
@@ -128,98 +115,91 @@ function validatePassword(password) {
   return !!password.trim()
 }
 
-function onBlur(field) {
-  touched.value[field] = true
+const isFormInvalid = computed(() => {
+  const invalid =
+    (props.isSignUp && !validateName(formData.name)) ||
+    !validateLogin(formData.login) ||
+    !validatePassword(formData.password)
+  return (
+    loading.value || (invalid && (submitAttempted.value || Object.values(touched).some(Boolean)))
+  )
+})
+
+const isButtonDisabled = computed(() => isFormInvalid.value || !!error.value)
+
+function onInput(field, value) {
+  touched[field] = true
+  if (field === 'name') errors.name = props.isSignUp && !validateName(value)
+  if (field === 'login') errors.login = !validateLogin(value)
+  if (field === 'password') errors.password = !validatePassword(value)
 }
 
 function clearError(fieldName) {
-  touched.value[fieldName] = false
+  errors[fieldName] = false
+  touched[fieldName] = false
 }
 
-const showNameError = computed(
-  () =>
-    props.isSignUp &&
-    (formTouched.value || touched.value.name) &&
-    !validateName(formData.value.name),
-)
-const showLoginError = computed(
-  () => (formTouched.value || touched.value.login) && !validateLogin(formData.value.login),
-)
-const showPasswordError = computed(
-  () => (formTouched.value || touched.value.password) && !validatePassword(formData.value.password),
-)
-
-const isFormInvalid = computed(() => {
-  const isNameValid = props.isSignUp ? validateName(formData.value.name) : true
-  const isLoginValid = validateLogin(formData.value.login)
-  const isPasswordValid = validatePassword(formData.value.password)
-  return !isNameValid || !isLoginValid || !isPasswordValid || loading.value
-})
-
-const isNameValid = computed(() => props.isSignUp && validateName(formData.value.name))
-
-const isLoginValid = computed(() => validateLogin(formData.value.login))
-
-const isPasswordValid = computed(() => validatePassword(formData.value.password))
-
-const isButtonDisabled = computed(() => {
-  if (loading.value) return true
-  // Если была попытка отправки и данные невалидны — дизэйблим
-  if (submitAttempted.value && isFormInvalid.value) return true
-  // В остальных случаях — не дизэйблим
-  return false
-})
-
-async function handleSubmit(event) {
-  console.log('submit!')
-  event.preventDefault()
+async function handleSubmit(e) {
+  e.preventDefault()
   submitAttempted.value = true
-  formTouched.value = true
-  error.value = ''
 
-  const isNameValid = props.isSignUp ? validateName(formData.value.name) : true
-  const isLoginValid = validateLogin(formData.value.login)
-  const isPasswordValid = validatePassword(formData.value.password)
+  errors.name = props.isSignUp && !validateName(formData.name)
+  errors.login = !validateLogin(formData.login)
+  errors.password = !validatePassword(formData.password)
+  touched.name = true
+  touched.login = true
+  touched.password = true
 
-  if (!isNameValid || !isLoginValid || !isPasswordValid) {
-    error.value =
-      'Упс! Введенные вами данные некорректны. Введите данные корректно и повторите попытку.'
+  if (errors.name || errors.login || errors.password) {
+    error.value = ERROR_MESSAGE
     return
   }
 
   loading.value = true
-  try {
-    const data = props.isSignUp
-      ? await signUp(formData.value)
-      : await signIn({ login: formData.value.login, password: formData.value.password })
+  error.value = ''
 
-    if (data) {
-      auth.setUserInfo(data)
+  try {
+    let userData
+    if (props.isSignUp) {
+      userData = await auth.signUp({
+        name: formData.name,
+        login: formData.login,
+        password: formData.password,
+      })
+    } else {
+      userData = await auth.signIn({
+        login: formData.login,
+        password: formData.password,
+      })
+    }
+    console.log('Ответ сервера:', userData)
+    if (userData && userData.user && userData.user.token) {
+      setUserInfo(userData.user)
       router.push('/')
-      submitAttempted.value = false
-      formTouched.value = false
+    } else if (userData && userData.error) {
+      error.value = userData.error
+    } else {
+      error.value = 'Не удалось выполнить запрос. Попробуйте позже.'
     }
   } catch (err) {
-    error.value = err.message
+    error.value = err.message || ERROR_MESSAGE
+    submitAttempted.value = true
   } finally {
     loading.value = false
   }
 }
 
-if (userInfo) {
-  watch(
-    userInfo,
-    (newVal) => {
-      console.log('Пользователь изменился:', newVal)
-    },
-    { immediate: true },
-  )
-}
-
-watch(formData, () => {
-  submitAttempted.value = false
-  formTouched.value = false
-})
+watch(
+  () => props.isSignUp,
+  () => {
+    Object.assign(formData, { name: '', login: '', password: '' })
+    Object.assign(touched, { name: false, login: false, password: false })
+    Object.assign(errors, { name: false, login: false, password: false })
+    error.value = ''
+    submitAttempted.value = false
+  },
+)
+watch(formData, () => (error.value = ''), { deep: true })
 </script>
 
 <style lang="scss">
@@ -240,16 +220,16 @@ a:visited {
   cursor: pointer;
 }
 
-button,
-._btn {
-  cursor: pointer;
-}
 .wrapper {
   width: 100%;
   height: 100%;
   overflow-x: hidden;
   overflow-y: scroll;
   background: rgba(244, 245, 246, 1);
+}
+.input-field {
+  position: relative;
+  width: 100%;
 }
 
 .container-signin {
@@ -331,23 +311,25 @@ button,
   letter-spacing: -0.28px;
   color: #94a6be;
 }
+.input-placeholder-black::placeholder {
+  color: #222 !important; /* Чёрный */
+  opacity: 1;
+  transition: color 0.2s;
+}
 .modal__btn-enter {
-  width: 100%;
-  height: 30px;
-  background-color: #565eef;
-  border-radius: 4px;
-  margin-top: 13px;
-  margin-bottom: 20px;
-  border: none;
-  outline: none;
-  display: flex;
-  align-items: center;
+  width: 313px;
+  height: 39px;
   justify-content: center;
-  font-size: 14px;
-  line-height: 21px;
-  font-weight: 500;
-  letter-spacing: -0.14px;
-  color: #ffffff;
+  align-items: center;
+  padding: 12px;
+  border-radius: 6px;
+  background: rgba(115, 52, 234, 1);
+  color: rgba(255, 255, 255, 1);
+  font-family: Montserrat;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  margin-top: 12px;
 }
 .modal__btn:disabled {
   background: rgba(153, 153, 153, 1);
@@ -377,38 +359,6 @@ button,
   margin-top: 12px;
 }
 
-.input--valid {
-  box-sizing: border-box;
-  border: 0.5px solid rgba(115, 52, 234, 1);
-  border-radius: 6px;
-}
-.input--valid input::placeholder {
-  color: #000000;
-}
-.input--valid input {
-  background-color: #f1ebfd;
-}
-.input--error {
-  box-sizing: border-box;
-  border: 0.5px solid rgba(242, 80, 80, 1);
-  border-radius: 6px;
-}
-.input--error input {
-  background-color: #ffebeb;
-}
-.input--error input::placeholder {
-  color: #000000;
-}
-.button--active {
-  background: #7334ea !important;
-  color: #fff !important;
-  cursor: pointer;
-}
-.button--disabled {
-  background: #d0d0d0 !important;
-  color: #999 !important;
-  cursor: not-allowed;
-}
 .error-message {
   color: #de2b2b;
   font-size: 12px;

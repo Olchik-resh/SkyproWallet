@@ -74,7 +74,7 @@ table {
   background: rgba(255, 255, 255, 1);
 }
 .tbl__ttl {
-  padding: 32px;
+  padding-top: 32px;
   font-size: 24px;
   font-weight: 700;
 }

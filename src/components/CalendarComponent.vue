@@ -193,6 +193,7 @@ onMounted(() => {
 
 <style lang="scss">
 .cost-tbl__columns {
+  padding-top: 24px;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
