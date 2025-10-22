@@ -1,4 +1,4 @@
-// services/transactions.js
+
 import axios from 'axios'
 
 const API_URL = 'https://wedev-api.sky.pro/api/transactions'
@@ -7,7 +7,6 @@ function getAuthHeader(token) {
   return { Authorization: `Bearer ${token}` }
 }
 
-// Получить все транзакции
 export async function getTransactions(token) {
   const response = await axios.get(API_URL, {
     headers: getAuthHeader(token),
@@ -15,7 +14,6 @@ export async function getTransactions(token) {
   return response.data
 }
 
-// Получить транзакции с фильтрацией и сортировкой
 export async function getTransactionsFiltered(token, { sortBy, filterBy } = {}) {
   const params = {}
   if (sortBy) params.sortBy = sortBy
@@ -27,7 +25,6 @@ export async function getTransactionsFiltered(token, { sortBy, filterBy } = {}) 
   return response.data
 }
 
-// Добавить транзакцию
 export async function addTransaction(token, transaction) {
   if (!token) {
     throw new Error('Токен не найден!')
@@ -52,7 +49,6 @@ export async function addTransaction(token, transaction) {
   }
 }
 
-// Удалить транзакцию
 export async function deleteTransaction(token, transactionId) {
   const response = await axios.delete(`${API_URL}/${transactionId}`, {
     headers: getAuthHeader(token),
@@ -60,16 +56,13 @@ export async function deleteTransaction(token, transactionId) {
   return response.data
 }
 
-// Обновить транзакцию
 export async function updateTransaction(token, transactionId, transaction) {
-  // transaction = { description, sum, category, date }
   const response = await axios.patch(`${API_URL}/${transactionId}`, transaction, {
     headers: getAuthHeader(token),
   })
   return response.data
 }
 
-// Получить транзакции за период
 export async function getTransactionsByPeriod(token, { start, end }) {
   const response = await axios.post(
     `${API_URL}/period`,

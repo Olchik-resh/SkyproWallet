@@ -1,4 +1,3 @@
-<!-- MyExpenses.vue -->
 <template>
   <div class="expens__conteiner">
     <h1 class="text-ttl">Мои расходы</h1>
@@ -10,7 +9,6 @@
         <NewExpensesForm
           @add-expense="
             (v) => {
-              console.log('add-expense', v)
               addExpense(v)
             }
           "

@@ -7,7 +7,7 @@
             <h2>{{ isSignUp ? 'Регистрация' : 'Вход' }}</h2>
           </div>
           <form class="modal__form-login" @submit.prevent="handleSubmit">
-            <!-- Имя (только для регистрации) -->
+
             <BaseInput
               v-if="isSignUp"
               name="name"
@@ -16,13 +16,14 @@
               v-model="formData.name"
               :error="errors.name && (touched.name || submitAttempted)"
               :touched="touched.name || submitAttempted"
+              :showStar="true"
               @focus="clearError('name')"
               @input="onInput('name', formData.name, validateName)"
               autocomplete="name"
               spellcheck="false"
             />
 
-            <!-- Email -->
+
             <BaseInput
               type="text"
               name="login"
@@ -31,12 +32,13 @@
               v-model="formData.login"
               :error="errors.login && (touched.login || submitAttempted)"
               :touched="touched.login || submitAttempted"
+              :showStar="true"
               @focus="clearError('login')"
               @input="onInput('login', formData.login, validateLogin)"
               autocomplete="email"
             />
 
-            <!-- Пароль -->
+
             <BaseInput
               type="password"
               name="password"
@@ -45,15 +47,16 @@
               v-model="formData.password"
               :error="errors.password && (touched.password || submitAttempted)"
               :touched="touched.password || submitAttempted"
+              :showStar="true"
               @focus="clearError('password')"
               @input="onInput('password', formData.password, validatePassword)"
               autocomplete="current-password"
             />
 
-            <!-- Сообщение об ошибке -->
+
             <p class="error-message" v-if="error">{{ error }}</p>
 
-            <!-- Кнопка отправки -->
+
             <BaseButton
               type="secondary"
               :fullWidth="true"
@@ -64,7 +67,7 @@
               {{ isSignUp ? 'Зарегистрироваться' : 'Войти' }}
             </BaseButton>
 
-            <!-- Переключение между формами -->
+
             <div v-if="!isSignUp" class="modal__form-group">
               <p>Нужно зарегистрироваться?</p>
               <RouterLink to="/sign-up" class="btn__here">Регистрируйтесь здесь</RouterLink>
@@ -172,18 +175,32 @@ async function handleSubmit(e) {
         password: formData.password,
       })
     }
-    console.log('Ответ сервера:', userData)
     if (userData && userData.user && userData.user.token) {
       setUserInfo(userData.user)
       router.push('/')
-    } else if (userData && userData.error) {
-      error.value = userData.error
     } else {
       error.value = 'Не удалось выполнить запрос. Попробуйте позже.'
     }
   } catch (err) {
     error.value = err.message || ERROR_MESSAGE
-    submitAttempted.value = true
+    if (
+      err.message.toLowerCase().includes('логин') ||
+      err.message.toLowerCase().includes('login')
+    ) {
+      errors.login = true
+      touched.login = true
+    }
+    if (
+      err.message.toLowerCase().includes('пароль') ||
+      err.message.toLowerCase().includes('password')
+    ) {
+      errors.password = true
+      touched.password = true
+    }
+    if (err.message.toLowerCase().includes('имя') || err.message.toLowerCase().includes('name')) {
+      errors.name = true
+      touched.name = true
+    }
   } finally {
     loading.value = false
   }

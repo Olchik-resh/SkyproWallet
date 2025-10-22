@@ -7,7 +7,6 @@ import { getTransactions, addTransaction, deleteTransaction } from '@/services/t
 dayjs.extend(isSameOrAfter)
 dayjs.extend(isSameOrBefore)
 
-// localStorage только для периода
 function loadPeriod(key) {
   const val = localStorage.getItem(key)
   return val && val !== 'null' && val !== '' ? val : null
@@ -37,10 +36,10 @@ const filteredExpenses = computed(() => {
 export function useExpenses() {
   const auth = inject('auth')
 
-  // Загружаем расходы для текущего пользователя
+
   async function fetchExpenses() {
     if (!auth?.token) {
-      expenses.value = [] // Если нет токена, очистить
+      expenses.value = []
       return
     }
     try {
@@ -48,12 +47,10 @@ export function useExpenses() {
       expenses.value = Array.isArray(result) ? result : []
     } catch (err) {
       expenses.value = []
-      // Можно вывести ошибку или обработать иначе
       console.error('Ошибка загрузки расходов:', err)
     }
   }
 
-  // Добавление расхода: после добавления обновить список
   async function addExpense(expense) {
     if (!auth?.token) return
     try {
@@ -64,7 +61,6 @@ export function useExpenses() {
     }
   }
 
-  // Удаление расхода: после удаления обновить список
   async function removeExpense(id) {
     if (!auth?.token) return
     try {
@@ -80,7 +76,6 @@ export function useExpenses() {
     periodEnd.value = end
   }
 
-  // Возвращаем все необходимые переменные и методы
   return {
     expenses,
     addExpense,

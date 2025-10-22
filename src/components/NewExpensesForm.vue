@@ -1,24 +1,20 @@
-<!-- NewExpensesForm.vue -->
 <template>
   <div class="tbl__new-expens">
     <h2 class="tbl__ttl">Новый расход</h2>
 
     <form class="expense-form" @submit.prevent="addExpense">
-      <!-- Описание -->
       <label class="expense-label">Описание</label>
       <BaseInput
         name="description"
         id="formdescription"
         v-model="form.description"
+        :error="triedSubmit && !validateDescription(form.description)"
+        :touched="triedSubmit"
         type="text"
-        :class="{
-          'input--error': triedSubmit && !validateDescription(form.description),
-          valid: validateDescription(form.description),
-        }"
+        :showStar="false"
         placeholder="Введите описание"
       />
 
-      <!-- Категория -->
       <label class="expense-label">
         Категория
         <span v-if="showCategoryError" class="star-error">*</span>
@@ -37,7 +33,7 @@
         </button>
       </div>
 
-      <!-- Дата -->
+
       <label class="expense-label">
         Дата
         <span v-if="showDateError" class="star-error">*</span>
@@ -47,13 +43,12 @@
         id="formdate"
         v-model="form.date"
         type="date"
-        :class="{
-          'input--error': triedSubmit && !validateDate(form.date),
-          valid: validateDate(form.date),
-        }"
+        :error="triedSubmit && !validateDate(form.date)"
+        :touched="triedSubmit"
+        :showStar="false"
       />
 
-      <!-- Сумма -->
+
       <label class="expense-label">
         Сумма
         <span v-if="showSumError" class="star-error">*</span>
@@ -63,10 +58,9 @@
         id="formsum"
         v-model="form.sum"
         type="number"
-        :class="{
-          'input--error': triedSubmit && !validateSum(form.sum),
-          valid: validateSum(form.sum),
-        }"
+        :error="triedSubmit && !validateSum(form.sum)"
+        :touched="triedSubmit"
+        :showStar="false"
         min="1"
         placeholder="0"
       />
@@ -81,7 +75,7 @@ import { ref, computed } from 'vue'
 import BaseInput from './BaseInput.vue'
 import BaseButton from './BaseButton.vue'
 
-// 1. Получаем emit
+
 const emit = defineEmits(['add-expense'])
 
 const categories = [
@@ -167,7 +161,7 @@ const form = ref({
   date: '',
   sum: '',
 })
-// 2. Валидации
+
 function validateDescription(val) {
   return !!val.trim()
 }
@@ -178,7 +172,6 @@ function validateSum(val) {
   return Number(val) > 0
 }
 
-// 3. Функция добавления расхода
 function addExpense() {
   triedSubmit.value = true
   errorMessage.value = ''

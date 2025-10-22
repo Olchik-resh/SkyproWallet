@@ -19,7 +19,12 @@
       @focus="onFocus"
       @blur="onBlur"
     />
-    <span v-if="error && touched" class="input-star" :style="{ left: starPosition + 'px' }">*</span>
+    <span
+      v-if="showStar && error && touched"
+      class="input-star"
+      :style="{ left: starPosition + 'px' }"
+      >*</span
+    >
   </div>
 </template>
 
@@ -33,6 +38,10 @@ const props = defineProps({
   type: { type: String, default: 'text' },
   error: { type: Boolean, default: false },
   touched: { type: Boolean, default: false },
+  showStar: {
+    type: Boolean,
+    default: false, 
+  },
 })
 
 const model = defineModel()
@@ -41,7 +50,6 @@ const starPosition = ref(24)
 const emit = defineEmits(['input', 'blur', 'focus'])
 const isActive = ref(false)
 const isValid = computed(() => model.value && !props.error && props.touched)
-
 
 function getStarPosition() {
   const input = inputRef.value
@@ -76,7 +84,6 @@ function onBlur(e) {
 
 function handleInput(e) {
   updateStarPosition()
-  // пробросить наверх
   emit('input', e)
 }
 

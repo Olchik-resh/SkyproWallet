@@ -16,13 +16,13 @@
     <div class="expenses-table-scroll">
       <table>
         <tbody>
-          <tr v-for="item in expenses" :key="item.id">
+          <tr v-for="item in expenses" :key="item._id">
             <td class="description-col">{{ item.description }}</td>
             <td class="category-col">{{ categoryMap[item.category] || item.category }}</td>
             <td class="date-col">{{ formatDate(item.date) }}</td>
             <td class="sum-col">{{ item.sum }}</td>
             <td class="action-col">
-              <button class="delete-btn" @click="removeExpense(item.id)">
+              <button class="delete-btn" @click="removeExpense(item._id)">
                 <svg viewBox="0 0 12 12" width="12" height="12" fill="none">
                   <g>
                     <path
