@@ -3,20 +3,18 @@
     <h2 class="tbl__ttl">Новый расход</h2>
 
     <form class="expense-form" @submit.prevent="addExpense">
-      <!-- Описание -->
       <label class="expense-label">Описание</label>
-      <input
+      <BaseInput
+        name="description"
+        id="formdescription"
         v-model="form.description"
+        :error="triedSubmit && !validateDescription(form.description)"
+        :touched="triedSubmit"
         type="text"
-        class="expense-input"
-        :class="{
-          'input--error': triedSubmit && !validateDescription(form.description),
-          valid: validateDescription(form.description),
-        }"
+        :showStar="false"
         placeholder="Введите описание"
       />
 
-      <!-- Категория -->
       <label class="expense-label">
         Категория
         <span v-if="showCategoryError" class="star-error">*</span>
@@ -35,50 +33,49 @@
         </button>
       </div>
 
-      <!-- Дата -->
+
       <label class="expense-label">
         Дата
         <span v-if="showDateError" class="star-error">*</span>
       </label>
-      <input
+      <BaseInput
+        name="date"
+        id="formdate"
         v-model="form.date"
         type="date"
-        :class="{
-          'input--error': triedSubmit && !validateDate(form.date),
-          valid: validateDate(form.date),
-        }"
-        class="expense-input"
+        :error="triedSubmit && !validateDate(form.date)"
+        :touched="triedSubmit"
+        :showStar="false"
       />
 
-      <!-- Сумма -->
+
       <label class="expense-label">
         Сумма
-        <span v-if="showAmountError" class="star-error">*</span>
+        <span v-if="showSumError" class="star-error">*</span>
       </label>
-      <input
-        v-model="form.amount"
+      <BaseInput
+        name="sum"
+        id="formsum"
+        v-model="form.sum"
         type="number"
-        class="expense-input"
-        :class="{
-          'input--error': triedSubmit && !validateAmount(form.amount),
-          valid: validateAmount(form.amount),
-        }"
+        :error="triedSubmit && !validateSum(form.sum)"
+        :touched="triedSubmit"
+        :showStar="false"
         min="1"
         placeholder="0"
       />
-
-      <p v-if="errorMessage && triedSubmit" class="error-message">{{ errorMessage }}</p>
-
       <!-- Кнопка добавить -->
-      <button type="submit" class="add-btn">Добавить новый расход</button>
+      <BaseButton type="submit" class="add-btn">Добавить новый расход</BaseButton>
     </form>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
+import BaseInput from './BaseInput.vue'
+import BaseButton from './BaseButton.vue'
 
-// 1. Получаем emit
+
 const emit = defineEmits(['add-expense'])
 
 const categories = [
@@ -141,9 +138,19 @@ const categories = [
 `,
   },
 ]
+
+const categoryMapReverse = {
+  Еда: 'food',
+  Транспорт: 'transport',
+  Жилье: 'housing',
+  Развлечения: 'joy',
+  Образование: 'education',
+  Другое: 'others',
+}
+
 const showCategoryError = computed(() => triedSubmit.value && !form.value.category)
 const showDateError = computed(() => triedSubmit.value && !validateDate(form.value.date))
-const showAmountError = computed(() => triedSubmit.value && !validateAmount(form.value.amount))
+const showSumError = computed(() => triedSubmit.value && !validateSum(form.value.sum))
 
 const errorMessage = ref('')
 const triedSubmit = ref(false)
@@ -152,41 +159,44 @@ const form = ref({
   description: '',
   category: '',
   date: '',
-  amount: '',
+  sum: '',
 })
-// 2. Валидации
+
 function validateDescription(val) {
   return !!val.trim()
 }
 function validateDate(val) {
   return !!val
 }
-function validateAmount(val) {
+function validateSum(val) {
   return Number(val) > 0
 }
 
-// 3. Функция добавления расхода
 function addExpense() {
   triedSubmit.value = true
   errorMessage.value = ''
   if (
     !validateDescription(form.value.description) ||
     !validateDate(form.value.date) ||
-    !validateAmount(form.value.amount) ||
+    !validateSum(form.value.sum) ||
     !form.value.category
   ) {
     errorMessage.value = 'Заполните все поля корректно!'
     return
   }
+
+  const apiCategory = categoryMapReverse[form.value.category]
+
   emit('add-expense', {
     description: form.value.description,
-    category: form.value.category,
+    category: apiCategory,
     date: form.value.date,
-    amount: Number(form.value.amount),
+    sum: Number(form.value.sum),
   })
+
   triedSubmit.value = false
   errorMessage.value = ''
-  form.value = { description: '', category: '', date: '', amount: '' }
+  form.value = { description: '', category: '', date: '', sum: '' }
 }
 </script>
 
@@ -194,7 +204,6 @@ function addExpense() {
 .tbl__ttl {
   padding-left: 32px;
   padding-top: 32px;
-  padding-bottom: 24px;
   font-size: 24px;
   font-weight: 700;
 }
@@ -207,24 +216,8 @@ function addExpense() {
 .expense-label {
   font-size: 16px;
   font-weight: 600;
-}
-
-.expense-input {
-  margin-top: 16px;
-  margin-bottom: 24px;
-  padding: 12px;
-  font-size: 12px;
-  border: 0.5px solid rgba(153, 153, 153, 1);
-  border-radius: 6px;
-  color: rgba(153, 153, 153, 1);
-  font-family: Montserrat;
-}
-
-.expense-input:focus {
-  outline: none;
-  border-color: #7334ea;
-  background: #f1ebfd;
-  color: #000000;
+  padding-bottom: 16px;
+  padding-top: 24px;
 }
 
 .categories-grid {
@@ -235,8 +228,6 @@ function addExpense() {
   align-items: flex-start;
   justify-content: flex-start;
   gap: 6px;
-  margin-top: 16px;
-  margin-bottom: 24px;
 }
 
 .category-btn {
@@ -258,38 +249,13 @@ function addExpense() {
   background: #f1ebfd;
   color: rgba(115, 52, 234, 1);
 }
-
 .add-btn {
-  padding: 12px;
-  font-size: 12px;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  background: rgba(115, 52, 234, 1);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.add-btn:hover {
-  background: #5e1acc;
-}
-.expense-input.valid {
-  background: #f1ebfd;
-  border-color: #7334ea;
-  color: #000000;
-}
-
-.input--error {
-  box-sizing: border-box;
-  border: 0.5px solid rgba(242, 80, 80, 1);
-  border-radius: 6px;
-  background-color: #ffebeb;
+  margin-top: 24px;
 }
 .star-error {
   color: #b80000;
   font-weight: bold;
   margin-left: 4px;
-  font-size: 1.2em;
+  font-size: 14px;
 }
 </style>

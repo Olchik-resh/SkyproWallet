@@ -3,10 +3,16 @@
     <h1 class="text-ttl">Мои расходы</h1>
     <div class="tbl">
       <div class="tbl__expens">
-        <TblExpenses :expenses="filteredExpenses" />
+        <TblExpenses :expenses="filteredExpenses" @remove-expense="removeExpense" />
       </div>
       <div class="tbl__new-expens">
-        <NewExpensesForm @add-expense="addExpense" />
+        <NewExpensesForm
+          @add-expense="
+            (v) => {
+              addExpense(v)
+            }
+          "
+        />
       </div>
     </div>
   </div>
@@ -16,19 +22,12 @@
 import { useExpenses } from '../services/useExpenses.js'
 import NewExpensesForm from './NewExpensesForm.vue'
 import TblExpenses from './TblExpenses.vue'
-import { onMounted } from 'vue'
-import dayjs from 'dayjs'
+import { onMounted, onActivated } from 'vue'
 
-const { addExpense, periodStart, periodEnd, filteredExpenses } = useExpenses()
+const { addExpense, removeExpense, filteredExpenses, fetchExpenses } = useExpenses()
 
-onMounted(() => {
-  const periodSaved = localStorage.getItem('period')
-  if (periodSaved) {
-    const { start, end } = JSON.parse(periodSaved)
-    periodStart.value = start ? dayjs(start) : null
-    periodEnd.value = end ? dayjs(end) : null
-  }
-})
+onMounted(fetchExpenses)
+onActivated(fetchExpenses)
 </script>
 
 <style lang="scss">

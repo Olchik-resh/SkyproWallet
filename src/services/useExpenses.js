@@ -1,37 +1,20 @@
-// services/useExpenses.js
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, inject } from 'vue'
 import dayjs from 'dayjs'
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
+import { getTransactions, addTransaction, deleteTransaction } from '@/services/transactions'
+
 dayjs.extend(isSameOrAfter)
 dayjs.extend(isSameOrBefore)
-
-const EXPENSES_KEY = 'expenses'
-
-function load() {
-  try {
-    return JSON.parse(localStorage.getItem(EXPENSES_KEY)) || []
-  } catch {
-    return []
-  }
-}
 
 function loadPeriod(key) {
   const val = localStorage.getItem(key)
   return val && val !== 'null' && val !== '' ? val : null
 }
 
-const expenses = ref(load())
+const expenses = ref([])
 const periodStart = ref(loadPeriod('periodStart'))
 const periodEnd = ref(loadPeriod('periodEnd'))
-
-watch(
-  expenses,
-  (val) => {
-    localStorage.setItem(EXPENSES_KEY, JSON.stringify(val))
-  },
-  { deep: true },
-)
 
 watch(periodStart, (val) => {
   localStorage.setItem('periodStart', val ? dayjs(val).format('YYYY-MM-DD') : '')
@@ -39,8 +22,6 @@ watch(periodStart, (val) => {
 watch(periodEnd, (val) => {
   localStorage.setItem('periodEnd', val ? dayjs(val).format('YYYY-MM-DD') : '')
 })
-
-console.log('periodStart', periodStart.value, 'periodEnd', periodEnd.value)
 
 const filteredExpenses = computed(() => {
   if (!periodStart.value) return expenses.value
@@ -53,12 +34,43 @@ const filteredExpenses = computed(() => {
 })
 
 export function useExpenses() {
-  function addExpense(expense) {
-    expenses.value.push(expense)
+  const auth = inject('auth')
+
+
+  async function fetchExpenses() {
+    if (!auth?.token) {
+      expenses.value = []
+      return
+    }
+    try {
+      const result = await getTransactions(auth.token)
+      expenses.value = Array.isArray(result) ? result : []
+    } catch (err) {
+      expenses.value = []
+      console.error('Ошибка загрузки расходов:', err)
+    }
   }
-  function removeExpense(id) {
-    expenses.value = expenses.value.filter((e) => e.id !== id)
+
+  async function addExpense(expense) {
+    if (!auth?.token) return
+    try {
+      await addTransaction(auth.token, expense)
+      await fetchExpenses()
+    } catch (err) {
+      console.error('Ошибка добавления расхода:', err)
+    }
   }
+
+  async function removeExpense(id) {
+    if (!auth?.token) return
+    try {
+      await deleteTransaction(auth.token, id)
+      await fetchExpenses()
+    } catch (err) {
+      console.error('Ошибка удаления расхода:', err)
+    }
+  }
+
   function setPeriod(start, end) {
     periodStart.value = start
     periodEnd.value = end
@@ -72,5 +84,6 @@ export function useExpenses() {
     periodEnd,
     setPeriod,
     filteredExpenses,
+    fetchExpenses,
   }
 }
